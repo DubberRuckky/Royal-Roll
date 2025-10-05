@@ -275,7 +275,7 @@ def ui():
     exit_button=ctk.CTkButton(app, text='Exit',command=exit)
     exit_button.pack(padx=40,pady=40)
 
-    credits_name=ctk.CTkLabel(app,text="Project by A E Inba Ilakiyan\n\nhttps://github.com/DubberRuckky/Royal-Roll")
+    credits_name=ctk.CTkLabel(app,text="Project by Dubber Ruckky\n\nhttps://github.com/DubberRuckky/Royal-Roll")
     credits_name.pack(side='bottom',padx=20,pady=20)
 
     app.mainloop()
