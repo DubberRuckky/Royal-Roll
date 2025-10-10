@@ -1,4 +1,4 @@
-import mysql.connector as sqlc
+import pymysql as sqlc
 import random as rand
 import customtkinter as ctk
 
@@ -9,24 +9,20 @@ con=sqlc.connect(host = 'localhost',
                  user = 'root',
                  passwd = 'Admin@123')
 
-if con.is_connected():
-    print('Connection established')
-else:
-    print('Connection not established')
-
 csr=con.cursor()
 
-csr.execute('CREATE DATABASE IF NOT EXISTS royal_roll;')
+csr.execute('create database if not exists royal_roll;')
 
-csr.execute('USE royal_roll;')
+csr.execute('use royal_roll;')
 
-csr.execute('CREATE TABLE IF NOT EXISTS gold (gp INT);')
+csr.execute('create table if not exists gold (gp INT);')
 
-csr.execute('CREATE TABLE IF NOT EXISTS rolls (roll_id BIGINT PRIMARY KEY,dice_type VARCHAR(10),roll INT,total INT);')
+csr.execute('create table if not exists rolls (roll_id bigint primary key,dice_type varchar(10),roll int,total int);')
 
-csr.execute('SELECT COUNT(*) FROM gold;')
+csr.execute('select count(*) from gold;')
+
 if csr.fetchone()[0] == 0:
-    csr.execute('INSERT INTO gold VALUES (100);')
+    csr.execute('insert into gold values(100);')
     con.commit()
 
 def sql_casino_get():
@@ -110,6 +106,7 @@ def casino():
 
     def casino_close():
         casino.destroy()
+        ui()
 
     def baby():
         play(10, 15, 1)
@@ -143,9 +140,11 @@ def casino():
 # --- Dice Functions ---
 def get_sql_dice():
     global history
-    csr.execute('SELECT * FROM rolls;')
+
+    csr.execute('select * from rolls;')
     temp_dict = csr.fetchall()
     history.clear()
+
     for row in temp_dict:
         roll_id, dice_type, roll, total = row
         history[roll_id] = (dice_type, roll, total)
@@ -153,10 +152,12 @@ def get_sql_dice():
 
 def write_sql_dice():
     global history
-    csr.execute('TRUNCATE TABLE rolls;')
+
+    csr.execute('truncate table rolls;')
+
     for k, v in history.items():
         dice_type, roll, total = v
-        csr.execute('INSERT INTO rolls VALUES (%s, %s, %s, %s);', (k, dice_type, roll, total))
+        csr.execute('insert into rolls values(%s, %s, %s, %s);', (k, dice_type, roll, total))
     con.commit()
 
 
@@ -172,7 +173,6 @@ def dice():
     label.pack(pady=10)
 
     dice_var = ctk.StringVar(value="20")
-    modifier_var = ctk.StringVar(value="0")
 
     dice_options = ["2", "4", "6", "8", "10", "12", "20", "100", "Custom"]
     dropdown = ctk.CTkOptionMenu(dice, values=dice_options, variable=dice_var)
@@ -180,7 +180,8 @@ def dice():
 
     mod_label = ctk.CTkLabel(dice, text="Modifier:")
     mod_label.pack()
-    mod_entry = ctk.CTkEntry(dice, textvariable=modifier_var)
+
+    mod_entry = ctk.CTkEntry(dice)
     mod_entry.pack(pady=5)
 
     output = ctk.CTkTextbox(dice, width=440, height=200)
@@ -195,7 +196,11 @@ def dice():
 
     def roll_dice():
         try:
-            modifier = int(modifier_var.get())
+            temp_mod = mod_entry.get()
+            if len(temp_mod) != 0:
+                modifier = int(temp_mod)
+            else:
+                modifier = 0
         except ValueError:
             output.insert("end", "\nInvalid modifier! Must be an integer.\n")
             return
@@ -244,9 +249,12 @@ def dice():
 
     def dice_close():
         dice.destroy()
+        ui()
 
     ctk.CTkButton(dice, text="Roll Dice", command=roll_dice).pack(pady=10)
+
     ctk.CTkButton(dice, text="Show Roll History", command=show_history).pack(pady=5)
+
     ctk.CTkButton(dice, text="Exit", command=dice_close).pack(pady=15)
 
     ctk.set_appearance_mode("System")
@@ -260,19 +268,30 @@ def ui():
     app.geometry('480x720')
     app.title("Royal Roll")
 
+    def close_ui():
+        app.destroy()
+
+    def open_casino():
+        close_ui()
+        casino()
+
+    def open_dice():
+        close_ui()
+        dice()
+
     welcome = ctk.CTkLabel(app, font=(None, 30), text='Welcome to\n\nRoyal Roll\nCasino Simulator and Dice Roller', text_color='#40E0D0')
     welcome.pack(pady=30)
 
     frame_buttons = ctk.CTkFrame(app)
     frame_buttons.pack(padx=40,pady=40,fill='both')
 
-    casio_button=ctk.CTkButton(frame_buttons,text='Casino',command=casino)
+    casio_button=ctk.CTkButton(frame_buttons,text='Casino',command=open_casino)
     casio_button.pack(padx=40, pady=40)
 
-    dice_button=ctk.CTkButton(frame_buttons,text="Dice Roller",command=dice)
+    dice_button=ctk.CTkButton(frame_buttons,text="Dice Roller",command=open_dice)
     dice_button.pack(padx=40,pady=40)
 
-    exit_button=ctk.CTkButton(app, text='Exit',command=exit)
+    exit_button=ctk.CTkButton(app, text='Exit',command=close_ui)
     exit_button.pack(padx=40,pady=40)
 
     credits_name=ctk.CTkLabel(app,text="Project by Dubber Ruckky\n\nhttps://github.com/DubberRuckky/Royal-Roll")
@@ -282,5 +301,3 @@ def ui():
 
 if __name__=='__main__':
     ui()
-
-#This is a copy-pasted version
