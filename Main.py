@@ -7,7 +7,7 @@ history = {}
 #Connecting to the database
 con=sqlc.connect(host = 'localhost',
                  user = 'root',
-                 passwd = 'Admin@123')
+                 passwd = '*********')
 
 csr=con.cursor()
 
